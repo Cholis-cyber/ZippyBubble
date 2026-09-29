@@ -1,0 +1,47 @@
+name: ZippyBubble Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Membuat tombol klik manual di web GitHub
+
+jobs:
+  build:
+    name: Merakit APK ZippyBubble
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Ambil Kode dari Repository
+      uses: actions/checkout@v4
+
+    - name: 2. Siapkan Sistem Java (JDK 17)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: 3. Siapkan Sistem Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 4. Install Semua Pustaka JavaScript
+      run: npm install
+
+    - name: 5. Sinkronisasi Kode Web ke Android (Capacitor)
+      run: npx cap sync android
+
+    - name: 6. Berikan Izin Akses Sistem Gradle
+      run: chmod +x ./android/gradlew
+
+    - name: 7. Proses Perakitan APK (Tanpa Android Studio)
+      run: |
+        cd android
+        ./gradlew assembleDebug
+
+    - name: 8. Bungkus File APK Menjadi Link Download
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZippyBubble-Aplikasi-HP
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
