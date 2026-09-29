@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F2E4E" />
+  <meta name="description" content="ZippyBubble — aplikasi pengelola file offline untuk kompres & ekstrak ZIP dengan kategori otomatis." />
+  <title>ZippyBubble — Kompres &amp; Ekstrak ZIP Offline</title>
+
+  <!-- Stylesheet utama (path relatif, aman untuk Capacitor) -->
+  <link rel="stylesheet" href="style.css" />
+  <script src="jszip.min.js"></script>
+  <script src="app.js" defer></script>
+
+
+  <!-- Google Material Icons Round (untuk mode browser; untuk APK offline penuh, host font secara lokal) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Gelembung dekoratif pada latar -->
+  <div class="latar-gelembung" aria-hidden="true">
+    <span class="g g1"></span>
+    <span class="g g2"></span>
+    <span class="g g3"></span>
+    <span class="g g4"></span>
+    <span class="g g5"></span>
+  </div>
+
+  <main class="app-shell">
+
+    <!-- HEADER APLIKASI -->
+    <header class="header-bubble">
+      <div class="logo-gelembung">
+        <span class="material-icons-round">bubble_chart</span>
+      </div>
+      <div class="header-teks">
+        <h1>ZippyBubble</h1>
+        <p>Kompres &amp; Ekstrak ZIP • 100% Offline</p>
+      </div>
+    </header>
+
+    <div class="grid-aksi">
+
+      <!-- KARTU 1: KOMPRES -->
+      <section class="kartu" id="kartuKompres">
+        <div class="kartu-kepala">
+          <span class="chip-ikon chip-kompres"><span class="material-icons-round">compress</span></span>
+          <div>
+            <h2>Kompres ke ZIP</h2>
+            <p>Pilih beberapa file sekaligus</p>
+          </div>
+        </div>
+
+        <label class="zona-pilih" for="inputCompress">
+          <span class="material-icons-round">add_circle</span>
+          <span class="zona-teks">Ketuk untuk memilih file</span>
+          <input type="file" id="inputCompress" multiple hidden />
+        </label>
+
+        <p class="meta-teks" id="compressMeta">Belum ada file dipilih</p>
+
+        <ul class="daftar-file" id="compressList" role="list"></ul>
+
+        <button type="button" class="tombol tombol-utama" id="btnCompress" disabled>
+          <span class="material-icons-round">archive</span>
+          Kompres Jadi ZIP
+        </button>
+
+        <div class="progres" id="compressProgressWrap" hidden>
+          <div class="progres-lacak"><div class="progres-isi" id="compressProgressBar"></div></div>
+          <span class="progres-teks" id="compressProgressText">0%</span>
+        </div>
+      </section>
+
+      <!-- KARTU 2: EKSTRAK -->
+      <section class="kartu" id="kartuEkstrak">
+        <div class="kartu-kepala">
+          <span class="chip-ikon chip-ekstrak"><span class="material-icons-round">unarchive</span></span>
+          <div>
+            <h2>Ekstrak ZIP</h2>
+            <p>Bongkar isi + kategori otomatis</p>
+          </div>
+        </div>
+
+        <label class="zona-pilih" for="inputExtract">
+          <span class="material-icons-round">upload_file</span>
+          <span class="zona-teks" id="extractLabel">Ketuk untuk memilih file .zip</span>
+          <input type="file" id="inputExtract" accept=".zip,application/zip,application/x-zip-compressed" hidden />
+        </label>
+
+        <button type="button" class="tombol tombol-utama" id="btnExtract" disabled>
+          <span class="material-icons-round">unarchive</span>
+          Ekstrak ZIP
+        </button>
+
+        <div class="progres" id="extractProgressWrap" hidden>
+          <div class="progres-lacak"><div class="progres-isi" id="extractProgressBar"></div></div>
+          <span class="progres-teks" id="extractProgressText">0%</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- HASIL EKSTRAK: BENTO GRID + DAFTAR UNDUH ULANG -->
+    <section id="resultSection" class="seksi-hasil" hidden>
+      <h2 class="judul-seksi">
+        <span class="material-icons-round">category</span>
+        Kategori Otomatis
+      </h2>
+
+      <div class="bento-grid">
+        <button type="button" class="bento-tile tile-gambar" data-cat="gambar">
+          <span class="bento-ikon"><span class="material-icons-round">image</span></span>
+          <strong>Gambar</strong>
+          <small>JPG • PNG • GIF</small>
+          <em id="countGambar">0</em>
+        </button>
+
+        <button type="button" class="bento-tile tile-dokumen" data-cat="dokumen">
+          <span class="bento-ikon"><span class="material-icons-round">description</span></span>
+          <strong>Dokumen</strong>
+          <small>PDF • DOC • TXT</small>
+          <em id="countDokumen">0</em>
+        </button>
+
+        <button type="button" class="bento-tile tile-media" data-cat="media">
+          <span class="bento-ikon"><span class="material-icons-round">movie</span></span>
+          <strong>Media</strong>
+          <small>MP3 • MP4 • WAV</small>
+          <em id="countMedia">0</em>
+        </button>
+
+        <button type="button" class="bento-tile tile-unduh aktif" data-cat="semua">
+          <span class="bento-ikon"><span class="material-icons-round">download</span></span>
+          <strong>Unduhan</strong>
+          <small>Semua file</small>
+          <em id="countUnduhan">0</em>
+        </button>
+      </div>
+
+      <div class="kartu kartu-daftar">
+        <div class="daftar-kepala">
+          <h3 id="listTitle">Unduhan — Semua File</h3>
+          <span class="pil" id="listCount">0 file</span>
+          <button type="button" class="tombol-mini" id="btnBersihkan">
+            <span class="material-icons-round">delete_sweep</span>
+            Bersihkan
+          </button>
+        </div>
+
+        <ul class="daftar-file" id="extractList" role="list"></ul>
+
+        <p class="kosong" id="emptyList" hidden>
+          <span class="material-icons-round">inbox</span>
+          Tidak ada file pada kategori ini.
+        </p>
+      </div>
+    </section>
+
+    <footer class="kaki-app">
+      <p>ZippyBubble v1.0 — HTML5 • CSS3 • Vanilla JS • JSZip</p>
+    </footer>
+
+  </main>
+
+  <!-- Wadah notifikasi toast -->
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+  <noscript>
+    <p style="text-align:center; padding:20px; font-weight:600;">
+      Aktifkan JavaScript untuk menjalankan ZippyBubble.
+    </p>
+  </noscript>
+
+  <!-- JSZip lokal (UTAMA, untuk mode offline/Capacitor).
+       Jika file ini tidak ditemukan (misal dijalankan di browser biasa),
+       app.js akan OTOMATIS memuat JSZip dari CDN sebagai fallback. -->
+  <script src="../node_modules/jszip/dist/jszip.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
